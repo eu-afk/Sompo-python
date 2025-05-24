@@ -1,0 +1,12 @@
+{
+    "clientes": [
+        {
+            "id": "4650f3e4-ab39-401c-8b7c-abe3297b8f3f",
+            "nome": "igor",
+            "cpf": "56789234532",
+            "email": "igor@gmail.com"
+        }
+    ],
+    "apolices": [],
+    "sinistros": []
+}
