@@ -1,0 +1,2 @@
+numero,cliente_id,tipo_seguro,dados_seguro,valor_segurado,valor_mensal,vigencia,data_emissao,status
+819671e6,1,automovel,"suv, rua sebastiao aniceto jesus lins",23.00,1.15,12 meses,2025-05-24,ativa

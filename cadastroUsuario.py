@@ -1,3 +1,5 @@
+import os
+import csv
 from datetime import datetime
 import traceback
 import uuid
@@ -49,6 +51,7 @@ class sinistro:
         self.status = "aberto"
 
 class sompo_seguradora:
+
     def cadastrar_cliente(self, nome, cpf, nascimento, endereco, telefone, email):
         cliente_novo = cliente(nome, cpf, nascimento, endereco, telefone, email)
         try:
@@ -170,6 +173,85 @@ class sompo_seguradora:
             cursor.close()
             conn.close()
 
+    def exportar_clientes_csv(self, nome_arquivo='clientes_sompo.csv'):
+        try:
+            os.makedirs('csv', exist_ok=True)
+            conn = conectar()
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, nome, cpf, nascimento, endereco, telefone, email FROM clientes")
+            clientes = cursor.fetchall()
+
+            caminho = os.path.join('csv', nome_arquivo)
+            with open(caminho, mode='w', newline='', encoding='utf-8') as arquivo_csv:
+                escritor = csv.writer(arquivo_csv)
+                escritor.writerow(['ID', 'Nome Completo', 'CPF', 'Nascimento', 'Endereço', 'Telefone', 'E-mail'])
+                for c in clientes:
+                    nascimento_formatado = datetime.strptime(str(c[3]), '%Y-%m-%d').strftime('%d/%m/%Y')
+                    escritor.writerow([c[0], c[1], c[2], nascimento_formatado, c[4], c[5], c[6]])
+
+            print(f"Arquivo '{caminho}' gerado com sucesso.")
+        except Exception as e:
+            print("Erro ao exportar clientes para CSV:", e)
+        finally:
+            cursor.close()
+            conn.close()
+
+    def exportar_apolices_csv(self, nome_arquivo='apolices_sompo.csv'):
+        try:
+            os.makedirs('csv', exist_ok=True)
+            conn = conectar()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT numero, cliente_id, tipo_seguro, dados_seguro, valor_segurado,
+                       valor_mensal, vigencia, data_emissao, status FROM apolices
+            """)
+            apolices = cursor.fetchall()
+
+            caminho = os.path.join('csv', nome_arquivo)
+            with open(caminho, mode='w', newline='', encoding='utf-8') as arquivo_csv:
+                escritor = csv.writer(arquivo_csv)
+                escritor.writerow([
+                    'Número da Apólice', 'ID do Cliente', 'Tipo de Seguro', 'Informações Adicionais',
+                    'Valor Segurado (R$)', 'Mensalidade (R$)', 'Vigência', 'Data de Emissão', 'Status'
+                ])
+                for a in apolices:
+                    data_emissao = datetime.strptime(str(a[7]), '%Y-%m-%d').strftime('%d/%m/%Y')
+                    escritor.writerow([
+                        a[0], a[1], a[2], a[3],
+                        f"R$ {a[4]:,.2f}", f"R$ {a[5]:,.2f}", a[6],
+                        data_emissao, a[8].capitalize()
+                    ])
+
+            print(f"Arquivo '{caminho}' gerado com sucesso.")
+        except Exception as e:
+            print("Erro ao exportar apólices para CSV:", e)
+        finally:
+            cursor.close()
+            conn.close()
+
+    def exportar_sinistros_csv(self, nome_arquivo='sinistros_sompo.csv'):
+        try:
+            os.makedirs('csv', exist_ok=True)
+            conn = conectar()
+            cursor = conn.cursor()
+            cursor.execute("SELECT apolice_numero, descricao, data_ocorrencia, status FROM sinistros")
+            sinistros = cursor.fetchall()
+
+            caminho = os.path.join('csv', nome_arquivo)
+            with open(caminho, mode='w', newline='', encoding='utf-8') as arquivo_csv:
+                escritor = csv.writer(arquivo_csv)
+                escritor.writerow(['Número da Apólice', 'Descrição', 'Data da Ocorrência', 'Status'])
+                for s in sinistros:
+                    data_ocorrencia = datetime.strptime(str(s[2]), '%Y-%m-%d').strftime('%d/%m/%Y')
+                    escritor.writerow([s[0], s[1], data_ocorrencia, s[3].capitalize()])
+
+            print(f"Arquivo '{caminho}' gerado com sucesso.")
+        except Exception as e:
+            print("Erro ao exportar sinistros para CSV:", e)
+        finally:
+            cursor.close()
+            conn.close()
+
 def menu():
     sompo = sompo_seguradora()
     while True:
@@ -179,6 +261,7 @@ def menu():
         print("3. registrar sinistro")
         print("4. visualizar relatório geral")
         print("5. consultar sinistros por cpf")
+        print("6. exportar dados para CSV")
         print("0. sair")
         opcao = input("escolha uma opção: ")
 
@@ -211,6 +294,11 @@ def menu():
         elif opcao == "5":
             cpf = input_cpf()
             sompo.sinistros_por_cliente(cpf)
+
+        elif opcao == "6":
+            sompo.exportar_clientes_csv()
+            sompo.exportar_apolices_csv()
+            sompo.exportar_sinistros_csv()
 
         elif opcao == "0":
             print("encerrando sistema sompo seguros.")
