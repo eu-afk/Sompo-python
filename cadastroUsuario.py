@@ -1,4 +1,3 @@
-# sompo.py
 from datetime import datetime
 import traceback
 import uuid
@@ -10,13 +9,12 @@ def validar_cpf(cpf):
 
 def input_cpf():
     while True:
-        cpf = input("CPF: ").strip()
+        cpf = input("cpf: ").strip()
         if validar_cpf(cpf):
             return cpf
-        print("CPF inválido! Deve conter exatamente 11 números.")
+        print("cpf inválido! deve conter exatamente 11 números.")
 
-# Entidades
-class Cliente:
+class cliente:
     def __init__(self, nome, cpf, nascimento, endereco, telefone, email):
         self.nome = nome
         self.cpf = cpf
@@ -25,13 +23,13 @@ class Cliente:
         self.telefone = telefone
         self.email = email
 
-class Seguro:
+class seguro:
     def __init__(self, tipo, dados, valor_segurado):
         self.tipo = tipo
         self.dados = dados
         self.valor_segurado = valor_segurado
 
-class Apolice:
+class apolice:
     def __init__(self, cliente_id, seguro, vigencia):
         self.numero = str(uuid.uuid4())[:8]
         self.cliente_id = cliente_id
@@ -41,31 +39,30 @@ class Apolice:
         self.valor_mensal = round(seguro.valor_segurado * 0.05, 2)
         self.vigencia = vigencia
         self.data_emissao = datetime.now().strftime('%Y-%m-%d')
-        self.status = "Ativa"
+        self.status = "ativa"
 
-class Sinistro:
+class sinistro:
     def __init__(self, apolice_numero, descricao):
         self.apolice_numero = apolice_numero
         self.descricao = descricao
         self.data_ocorrencia = datetime.now().strftime('%Y-%m-%d')
-        self.status = "Aberto"
+        self.status = "aberto"
 
-class SompoSeguradora:
+class sompo_seguradora:
     def cadastrar_cliente(self, nome, cpf, nascimento, endereco, telefone, email):
-        cliente = Cliente(nome, cpf, nascimento, endereco, telefone, email)
+        cliente_novo = cliente(nome, cpf, nascimento, endereco, telefone, email)
         try:
             conn = conectar()
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO clientes (nome, cpf, nascimento, endereco, telefone, email) "
-                "VALUES (%s, %s, %s, %s, %s, %s)",
-                (cliente.nome, cliente.cpf, cliente.nascimento, cliente.endereco, cliente.telefone, cliente.email)
+                "insert into clientes (nome, cpf, nascimento, endereco, telefone, email) values (%s, %s, %s, %s, %s, %s)",
+                (cliente_novo.nome, cliente_novo.cpf, cliente_novo.nascimento, cliente_novo.endereco, cliente_novo.telefone, cliente_novo.email)
             )
             conn.commit()
-            print(f"Cliente {cliente.nome} cadastrado com sucesso.")
+            print(f"cliente {cliente_novo.nome} cadastrado com sucesso.")
         except Exception as e:
             traceback.print_exc()
-            print("Erro ao cadastrar cliente:", e)
+            print("erro ao cadastrar cliente:", e)
         finally:
             cursor.close()
             conn.close()
@@ -74,28 +71,27 @@ class SompoSeguradora:
         try:
             conn = conectar()
             cursor = conn.cursor()
-            cursor.execute("SELECT id, nome FROM clientes WHERE cpf = %s", (cpf,))
-            cliente = cursor.fetchone()
+            cursor.execute("select id, nome from clientes where cpf = %s", (cpf,))
+            cliente_bd = cursor.fetchone()
 
-            if not cliente:
-                print("Cliente não encontrado.")
+            if not cliente_bd:
+                print("cliente não encontrado.")
                 return
 
-            cliente_id, nome = cliente
-            seguro = Seguro(tipo, dados_seguro, valor_segurado)
-            apolice = Apolice(cliente_id, seguro, vigencia)
+            cliente_id, nome = cliente_bd
+            seguro_novo = seguro(tipo, dados_seguro, valor_segurado)
+            apolice_nova = apolice(cliente_id, seguro_novo, vigencia)
 
             cursor.execute(
-                "INSERT INTO apolices (numero, cliente_id, tipo_seguro, dados_seguro, valor_segurado, valor_mensal, vigencia, data_emissao, status) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                (apolice.numero, apolice.cliente_id, apolice.tipo_seguro, apolice.dados_seguro,
-                 apolice.valor_segurado, apolice.valor_mensal, apolice.vigencia, apolice.data_emissao, apolice.status)
+                "insert into apolices (numero, cliente_id, tipo_seguro, dados_seguro, valor_segurado, valor_mensal, vigencia, data_emissao, status) values (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                (apolice_nova.numero, apolice_nova.cliente_id, apolice_nova.tipo_seguro, apolice_nova.dados_seguro,
+                 apolice_nova.valor_segurado, apolice_nova.valor_mensal, apolice_nova.vigencia, apolice_nova.data_emissao, apolice_nova.status)
             )
             conn.commit()
-            print(f"Apólice {apolice.numero} emitida com sucesso para {nome}.")
+            print(f"apólice {apolice_nova.numero} emitida com sucesso para {nome}.")
         except Exception as e:
             traceback.print_exc()
-            print("Erro ao emitir apólice:", e)
+            print("erro ao emitir apólice:", e)
         finally:
             cursor.close()
             conn.close()
@@ -104,22 +100,21 @@ class SompoSeguradora:
         try:
             conn = conectar()
             cursor = conn.cursor()
-            cursor.execute("SELECT numero FROM apolices WHERE numero = %s", (numero_apolice,))
+            cursor.execute("select numero from apolices where numero = %s", (numero_apolice,))
             if not cursor.fetchone():
-                print("Apólice não encontrada.")
+                print("apólice não encontrada.")
                 return
 
-            sinistro = Sinistro(numero_apolice, descricao)
+            sinistro_novo = sinistro(numero_apolice, descricao)
             cursor.execute(
-                "INSERT INTO sinistros (apolice_numero, descricao, data_ocorrencia, status) "
-                "VALUES (%s, %s, %s, %s)",
-                (sinistro.apolice_numero, sinistro.descricao, sinistro.data_ocorrencia, sinistro.status)
+                "insert into sinistros (apolice_numero, descricao, data_ocorrencia, status) values (%s, %s, %s, %s)",
+                (sinistro_novo.apolice_numero, sinistro_novo.descricao, sinistro_novo.data_ocorrencia, sinistro_novo.status)
             )
             conn.commit()
-            print("Sinistro registrado com sucesso.")
+            print("sinistro registrado com sucesso.")
         except Exception as e:
             traceback.print_exc()
-            print("Erro ao registrar sinistro:", e)
+            print("erro ao registrar sinistro:", e)
         finally:
             cursor.close()
             conn.close()
@@ -128,20 +123,20 @@ class SompoSeguradora:
         try:
             conn = conectar()
             cursor = conn.cursor()
-            print("\n--- RELATÓRIO GERAL SOMPO SEGUROS ---")
+            print("\n--- relatório geral sompo seguros ---")
 
-            cursor.execute("SELECT COUNT(*) FROM apolices WHERE status = 'Ativa'")
-            print("Apólices ativas:", cursor.fetchone()[0])
+            cursor.execute("select count(*) from apolices where status = 'ativa'")
+            print("apólices ativas:", cursor.fetchone()[0])
 
-            cursor.execute("SELECT COUNT(*) FROM sinistros")
-            print("Total de sinistros registrados:", cursor.fetchone()[0])
+            cursor.execute("select count(*) from sinistros")
+            print("total de sinistros registrados:", cursor.fetchone()[0])
 
-            cursor.execute("SELECT SUM(valor_mensal) FROM apolices")
+            cursor.execute("select sum(valor_mensal) from apolices")
             total = cursor.fetchone()[0]
-            print("Receita mensal estimada: R$", total if total else 0)
+            print("receita mensal estimada: r$", total if total else 0)
         except Exception as e:
             traceback.print_exc()
-            print("Erro ao gerar relatório:", e)
+            print("erro ao gerar relatório:", e)
         finally:
             cursor.close()
             conn.close()
@@ -150,64 +145,64 @@ class SompoSeguradora:
         try:
             conn = conectar()
             cursor = conn.cursor()
-            cursor.execute("SELECT id, nome FROM clientes WHERE cpf = %s", (cpf,))
-            cliente = cursor.fetchone()
-            if not cliente:
-                print("Cliente não encontrado.")
+            cursor.execute("select id, nome from clientes where cpf = %s", (cpf,))
+            cliente_bd = cursor.fetchone()
+            if not cliente_bd:
+                print("cliente não encontrado.")
                 return
 
-            cliente_id, nome = cliente
+            cliente_id, nome = cliente_bd
             cursor.execute("""
-                SELECT s.descricao, s.data_ocorrencia, s.status, a.numero
-                FROM sinistros s
-                JOIN apolices a ON s.apolice_numero = a.numero
-                WHERE a.cliente_id = %s
+                select s.descricao, s.data_ocorrencia, s.status, a.numero
+                from sinistros s
+                join apolices a on s.apolice_numero = a.numero
+                where a.cliente_id = %s
             """, (cliente_id,))
             sinistros = cursor.fetchall()
 
-            print(f"\nSinistros vinculados ao cliente {nome}:")
+            print(f"\nsinistros vinculados ao cliente {nome}:")
             for s in sinistros:
-                print(f"- Apólice {s[3]} | {s[0]} | {s[1]} | Status: {s[2]}")
+                print(f"- apólice {s[3]} | {s[0]} | {s[1]} | status: {s[2]}")
         except Exception as e:
             traceback.print_exc()
-            print("Erro ao listar sinistros:", e)
+            print("erro ao listar sinistros:", e)
         finally:
             cursor.close()
             conn.close()
 
 def menu():
-    sompo = SompoSeguradora()
+    sompo = sompo_seguradora()
     while True:
-        print("\n------ SOMPO SEGUROS - MENU ------")
-        print("1. Cadastrar novo cliente")
-        print("2. Emitir nova apólice")
-        print("3. Registrar sinistro")
-        print("4. Visualizar relatório geral")
-        print("5. Consultar sinistros por CPF")
-        print("0. Sair")
-        opcao = input("Escolha uma opção: ")
+        print("\n------ sompo seguros - menu ------")
+        print("1. cadastrar novo cliente")
+        print("2. emitir nova apólice")
+        print("3. registrar sinistro")
+        print("4. visualizar relatório geral")
+        print("5. consultar sinistros por cpf")
+        print("0. sair")
+        opcao = input("escolha uma opção: ")
 
         if opcao == "1":
-            nome = input("Nome completo: ")
+            nome = input("nome completo: ")
             cpf = input_cpf()
-            nascimento = input("Data de nascimento (AAAA-MM-DD): ")
-            endereco = input("Endereço completo: ")
-            telefone = input("Telefone: ")
-            email = input("Email: ")
+            nascimento = input("data de nascimento (aaaa-mm-dd): ")
+            endereco = input("endereço completo: ")
+            telefone = input("telefone: ")
+            email = input("email: ")
             sompo.cadastrar_cliente(nome, cpf, nascimento, endereco, telefone, email)
 
         elif opcao == "2":
             cpf = input_cpf()
-            print("Tipos de seguro disponíveis: Automóvel, Residencial, Vida, Empresarial, Agrícola, Transportes")
-            tipo = input("Tipo de seguro: ")
-            dados = input("Informações adicionais (modelo do carro, endereço, cultura, etc): ")
-            valor = float(input("Valor segurado (R$): "))
-            vigencia = input("Vigência (ex: 12 meses): ")
+            print("tipos de seguro disponíveis: automóvel, residencial, vida, empresarial, agrícola, transportes")
+            tipo = input("tipo de seguro: ")
+            dados = input("informações adicionais (modelo do carro, endereço, cultura, etc): ")
+            valor = float(input("valor segurado (r$): "))
+            vigencia = input("vigência (ex: 12 meses): ")
             sompo.emitir_apolice(cpf, tipo, dados, valor, vigencia)
 
         elif opcao == "3":
-            numero_apolice = input("Número da apólice: ")
-            descricao = input("Descrição do sinistro: ")
+            numero_apolice = input("número da apólice: ")
+            descricao = input("descrição do sinistro: ")
             sompo.registrar_sinistro(numero_apolice, descricao)
 
         elif opcao == "4":
@@ -218,10 +213,10 @@ def menu():
             sompo.sinistros_por_cliente(cpf)
 
         elif opcao == "0":
-            print("Encerrando sistema Sompo Seguros.")
+            print("encerrando sistema sompo seguros.")
             break
         else:
-            print("Opção inválida. Tente novamente.")
+            print("opção inválida. tente novamente.")
 
 if __name__ == "__main__":
     criar_banco_e_tabelas()
